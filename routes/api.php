@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BlogController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -21,5 +22,11 @@ use Illuminate\Support\Facades\Route;
 
 
 // To make Curd operation for blog
+Route::post('/register',[AuthController::class,'register']);
+
+Route::post('/login',[AuthController::class,'login']);
 
 Route::apiResource('blogs',BlogController::class);
+
+// route for image-uploading 
+Route::post('/blogs/upload',[BlogController::class,'upload']);

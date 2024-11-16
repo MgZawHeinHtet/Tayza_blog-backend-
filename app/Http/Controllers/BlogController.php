@@ -7,7 +7,9 @@ use App\Models\Blog;
 use Error;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use PhpParser\Node\Stmt\TryCatch;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 
 use function Laravel\Prompts\error;
 
@@ -70,18 +72,94 @@ class BlogController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function upload(Request $request)
     {
-        //
+        try {
+
+            $validator = Validator::make(request()->all(), [
+                'photo' => 'required|image'
+            ]);
+
+            if ($validator->fails()) {
+                $flatMapErrors = collect($validator->errors())->flatMap(function ($e, $field) {
+                    return [$field => $e[0]];
+                });
+
+                return response()->json([
+                    'message' => $flatMapErrors,
+                    'status' => 422
+                ], 422);
+            }
+
+            $path = '/storage/'.request('photo')->store('/blog_img');
+
+            return [
+                'path' => $path,
+                'status' => 200
+            ];
+        } catch (Exception $e) {
+            return response()->json([
+                'errors' => $e->getMessage(),
+                'status' => 500
+            ], 500);
+        };
     }
 
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update($id)
     {
-        //
+        try {
+            //select the current blog
+            $blog = Blog::find($id);
+
+            //if there is no blog return some stuff
+            if (!$blog) {
+                return response()->json([
+                    'message' => 'There is no blogs',
+                    'status' => 404
+                ], 404);
+            }
+
+            //check the validation for update data
+            $validator = Validator::make(request()->all(), [
+                'title' => 'required',
+                'description' => 'required',
+                'photo' => 'required',
+
+            ]);
+
+            //if fail respone with error
+            if ($validator->fails()) {
+                $flatMapErrors = collect($validator->errors())->flatMap(function ($e, $field) {
+                    return [$field => $e[0]];
+                });
+
+                return response()->json([
+                    'errors' => $flatMapErrors,
+                    'status' => 422
+                ], 422);
+            }
+
+            //update the blog 
+            $blog->title = request("title");
+            $blog->description = request("description");
+            $blog->photo = request("photo");
+
+            $blog->save();
+
+            return [
+                'status' => 200,
+                'data' => $blog
+            ];
+        } catch (Exception $e) {
+            return response()->json([
+                'errors' => $e->getMessage(),
+                'status' => 500
+            ], 500);
+        };
     }
 
     /**
@@ -90,7 +168,7 @@ class BlogController extends Controller
     public function destroy(string $id)
     {
         try {
-            //check blog with such id  exit
+            //check blog with such id is exit
 
             $blog = Blog::find($id);
 

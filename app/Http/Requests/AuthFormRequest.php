@@ -5,16 +5,15 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Support\Collection;
 
-class BlogRequest extends FormRequest
+class AuthFormRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     // public function authorize(): bool
     // {
-    //     return true;
+    //     return false;
     // }
 
     /**
@@ -25,11 +24,9 @@ class BlogRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required',
-            'description' => 'required',
-            'photo' => 'required',
-            'category_id' => 'required',
-            'user_id' => 'required',
+            'name' => 'required|string',
+            'email'=> 'required|email|unique:users,email',
+            'password' => ['string','min:8','required'],
         ];
     }
 
